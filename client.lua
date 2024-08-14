@@ -73,8 +73,6 @@ set_callback(function(ctx)
         end
     end
 
-    
-
     if ap ~= nil then
         ap:poll()
     end
@@ -260,7 +258,7 @@ function set_ap_callbacks()
 
             item_handler(item.type)
 
-            toast(f"Received {item.name}")
+            toast(f"You received {item.name}!")
 
              set_interval(function()
                 ready_for_item = true
