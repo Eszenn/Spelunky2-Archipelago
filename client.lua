@@ -12,6 +12,7 @@ local items_in_queue = false
 local ready_for_item = true
 local caused_by_death_link = false
 local goal_completed = false
+local id = nil
 
 game_info = {
     game = "Spelunky 2",
@@ -27,6 +28,7 @@ player_options = {
     goal = 0,
     goal_level = 30,
     progressive_worlds = true,
+    starting_character = 0,
     starting_health = 4,
     starting_bombs = 4,
     starting_ropes = 4,
@@ -54,6 +56,9 @@ set_callback(function(ctx)
             if show_connect_button then
                 if ctx:win_button("Connect") then
                     prinspect("Connecting to the server...")
+                    id = set_callback(function()
+                        return true
+                    end, ON.PRE_PROCESS_INPUT)
                     connect(game_info.host, game_info.username, game_info.password_hidden)
                 end
             else
@@ -89,7 +94,8 @@ function connect(server, slot, password)
     end
 
     function on_socket_disconnected()
-        print("Socket disconnected")
+        print("Disconnected from the server.")
+        show_connect_button = true
 
     end
 
@@ -99,12 +105,16 @@ function connect(server, slot, password)
 
     function on_slot_connected(slot_data)
         print("Slot connected")
+
         show_connect_button = false
+        clear_callback(id)
+
         write_last_login()
 
         player_options.seed = ap:get_seed()
         player_options.goal = slot_data.goal
         player_options.goal_level = slot_data.goal_level
+        player_options.starting_character = slot_data.starting_character
         player_options.progressive_worlds = slot_data.progressive_worlds
         player_options.starting_health = slot_data.starting_health
         player_options.starting_bombs = slot_data.starting_bombs
@@ -128,8 +138,6 @@ function connect(server, slot, password)
             end, ON.DEATH)
         end
 
-        -- Set ap_save.starting_characters in here 
-
         set_ap_callbacks()
         initialize_save()
         read_save()
@@ -137,6 +145,7 @@ function connect(server, slot, password)
 
     function on_slot_refused(reasons)
         print("Slot refused: " .. table.concat(reasons, ", "))
+        clear_callback(id)
     end
 
     function on_items_received(items)
@@ -216,7 +225,7 @@ function connect(server, slot, password)
 
     --ap:set_socket_connected_handler(on_socket_connected)
     ap:set_socket_error_handler(on_socket_error)
-    --ap:set_socket_disconnected_handler(on_socket_disconnected)
+    ap:set_socket_disconnected_handler(on_socket_disconnected)
     ap:set_room_info_handler(on_room_info)
     ap:set_slot_connected_handler(on_slot_connected)
     ap:set_slot_refused_handler(on_slot_refused)
@@ -307,9 +316,16 @@ function set_ap_callbacks()
 end
 
 
-function send_location(chapter, index)
-    local location_name = f"{journal[chapter][index]} Journal Entry"
-    local location_id = location_name_to_id[location_name]
+function verify_locations(location_list)
+    for index, location_id in ipairs(ap_save.checked_locations) do
+        if location_list[index] ~= location_id then
+            send_location(location_id)
+        end
+    end
+end
+
+
+function send_location(location_id)
     ap:LocationChecks({location_id})
     write_save()
 end

@@ -8,8 +8,9 @@ ap_save = {
     last_character = 1,
 
     max_world = 1,
-    shortcut_progress = 10, -- Change this when shortcuts are implemented
+    shortcut_progress = 0, -- Change this when shortcuts are implemented
     last_index = -1, -- Stores AP item data sent from the server
+    checked_locations = {},
 
     unlocked_key_items = {
         [1] = false,  -- Udjat Eye
@@ -50,16 +51,22 @@ ap_save = {
     },
 
     unlocked_worlds = {
-        ["dwelling"] = true,
-        ["jungle"] = false,
-        ["volcana"] = false,
-        ["olmec"] = false,
-        ["tide_pool"] = false,
-        ["temple"] = false,
-        ["ice_caves"] = false,
-        ["neo_babylon"] = false,
-        ["sunken_city"] = false,
-        ["cosmic_ocean"] = false
+        dwelling = true,
+        jungle = false,
+        volcana = false,
+        olmec = false,
+        tide_pool = false,
+        temple = false,
+        ice_caves = false,
+        neo_babylon = false,
+        sunken_city = false,
+        cosmic_ocean = false
+    },
+
+    unlocked_shortcuts = {
+        dwelling = false,
+        olmec = false,
+        ice_caves = false
     },
 
     permanent_upgrades = {
@@ -302,43 +309,43 @@ ap_save = {
 
 function backup_save()
     local backup = {
-        _places = savegame.places,
-        _bestiary = savegame.bestiary,
-        _people = savegame.people,
-        _items = savegame.items,
-        _traps = savegame.traps,
-        _last_daily = savegame.last_daily,
-        _characters = savegame.characters,
-        _bestiary_killed = savegame.bestiary_killed,
-        _bestiary_killed_by = savegame.bestiary_killed_by,
-        _people_killed = savegame.people_killed,
-        _people_killed_by = savegame.people_killed_by,
-        _plays = savegame.plays,
-        _deaths = savegame.deaths,
-        _wins_normal = savegame.wins_normal,
-        _wins_hard = savegame.wins_hard,
-        _wins_special = savegame.wins_special,
-        _score_total = savegame.score_total,
-        _score_top = savegame.score_top,
-        _deepest_area = savegame.deepest_area,
-        _deepest_level = savegame.deepest_level,
-        _time_best = savegame.time_best,
-        _time_total = savegame.time_total,
-        _time_tutorial = savegame.time_tutorial,
-        _character_deaths = savegame.character_deaths,
-        _pets_rescued = savegame.pets_rescued,
-        _completed_normal = savegame.completed_normal,
-        _completed_ironman = savegame.completed_ironman,
-        _completed_hard = savegame.completed_hard,
-        _profile_seen = savegame.profile_seen,
-        _seeded_unlocked = savegame.seeded_unlocked,
-        _world_last = savegame.world_last,
-        _level_last = savegame.level_last,
-        _theme_last = savegame.theme_last,
-        _score_last = savegame.score_last,
-        _time_last = savegame.time_last,
-        _players = savegame.players,
-        _constellation = savegame.constellation
+        places = savegame.places,
+        bestiary = savegame.bestiary,
+        people = savegame.people,
+        items = savegame.items,
+        traps = savegame.traps,
+        last_daily = savegame.last_daily,
+        characters = savegame.characters,
+        bestiary_killed = savegame.bestiary_killed,
+        bestiary_killed_by = savegame.bestiary_killed_by,
+        people_killed = savegame.people_killed,
+        people_killed_by = savegame.people_killed_by,
+        plays = savegame.plays,
+        deaths = savegame.deaths,
+        wins_normal = savegame.wins_normal,
+        wins_hard = savegame.wins_hard,
+        wins_special = savegame.wins_special,
+        score_total = savegame.score_total,
+        score_top = savegame.score_top,
+        deepest_area = savegame.deepest_area,
+        deepest_level = savegame.deepest_level,
+        time_best = savegame.time_best,
+        time_total = savegame.time_total,
+        time_tutorial = savegame.time_tutorial,
+        character_deaths = savegame.character_deaths,
+        pets_rescued = savegame.pets_rescued,
+        completed_normal = savegame.completed_normal,
+        completed_ironman = savegame.completed_ironman,
+        completed_hard = savegame.completed_hard,
+        profile_seen = savegame.profile_seen,
+        seeded_unlocked = savegame.seeded_unlocked,
+        world_last = savegame.world_last,
+        level_last = savegame.level_last,
+        theme_last = savegame.theme_last,
+        score_last = savegame.score_last,
+        time_last = savegame.time_last,
+        players = savegame.players,
+        constellation = savegame.constellation
     }
 
     local file = io.open_data("Savegame.json", "w+")
@@ -351,34 +358,35 @@ end
 
 
 function initialize_save()
+    -- Clearing game save
     savegame.tutorial_state = 4
-    savegame.shortcuts = ap_save.shortcut_progress
-    savegame.places[1] = true
-    ap_save.places[1] = true
-    for index, character in ipairs(ap_save.starting_characters) do
-        savegame.players[index] = character - 1
-    end
+    savegame.shortcuts = 10
+    savegame.characters = character_data.binary_values[player_options.starting_character]
+    savegame.players[1] = player_options.starting_character - 1
 
     for _, chapter in ipairs(journal.chapters) do
         clear_journal(savegame[chapter])
     end
 
-    set_starting_characters()
+    -- Clearing AP save
+    ap_save.last_character = 0
+    ap_save.max_world = 1
+
+    set_start_values()
+end
+
+
+function set_start_values()
+    savegame.people[player_options.starting_character] = true
+    ap_save.unlocked_characters[player_options.starting_character] = true
+    savegame.players[1] = player_options.starting_character - 1
+
 end
 
 
 function update_game_save()
     for _, chapter in ipairs(journal.chapters) do
         copy_journal_data(chapter)
-    end
-end
-
-
-function set_starting_characters()
-    for _, index in ipairs(ap_save.starting_characters) do
-        ap_save.unlocked_characters[index] = true
-        savegame.people[index] = true
-        ap_save.people[index] = true
     end
 end
 
@@ -395,10 +403,12 @@ function update_characters()
     savegame.characters = character_sum
 end
 
+
 function lock_characters()
     local character_sum = 0
     for index, is_unlocked in ipairs(ap_save.people) do
-        if is_unlocked and index <= 20 then
+        -- index is within this range to not check the characters that don't show up in coffins since there's no way to get their entries without owning the character
+        if is_unlocked and index > 4 and index <= 18 then 
             character_sum = character_sum + character_data.binary_values[index]
         end
     end
@@ -414,7 +424,11 @@ function update_journal(chapter, index)
         prinspect(F"Updated {chapter} entry {journal[chapter][index]}")
     end
 
-    send_location(chapter, index)
+    local location_name = f"{journal[chapter][index]} Journal Entry"
+    local location_id = location_name_to_id[location_name]
+
+    table.insert(ap_save.checked_locations, #ap_save.checked_locations + 1, location_id)
+    send_location(location_id)
 end
 
 function copy_journal_data(chapter)
