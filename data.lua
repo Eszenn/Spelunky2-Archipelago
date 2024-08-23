@@ -280,7 +280,7 @@ character_data = {
         [20] = ENT_TYPE.CHAR_CLASSIC_GUY        -- Classic Guy
     },
 
-  locations = {
+    locations = {
     [ENT_TYPE.CHAR_BANDA] = {
         world = 1,
         level = 4,
@@ -377,7 +377,30 @@ character_data = {
         layer = nil,
         theme = THEME.HUNDUN
     }
-  }
+    },
+
+    name_to_index = {
+        ["Ana Spelunky"] = 1,
+        ["Margaret Tunnel"] = 2,
+        ["Colin Northward"] = 3,
+        ["Roffy D. Sloth"] = 4,
+        ["Alto Singh"] = 5,
+        ["Liz Mutton"] = 6,
+        ["Nekka the Eagle"] = 7,
+        ["LISE Project"] = 8,
+        ["Coco von Diamonds"] = 9,
+        ["Manfred Tunnel"] = 10,
+        ["Little Jay"] = 11,
+        ["Tina Flan"] = 12,
+        ["Valerie Crump"] = 13,
+        ["Au"] = 14,
+        ["Demi von Diamonds"] = 15,
+        ["Pilot"] = 16,
+        ["Princess Airyn"] = 17,
+        ["Dirk Yamaoka"] = 18,
+        ["Guy Spelunky"] = 19,
+        ["Classic Guy"] = 20
+    }
 }
 
 theme_to_index = {
@@ -830,86 +853,98 @@ item_ids = {
         name = "Eggplant"
     },
     [44] = {
-        type = "shortcuts",
+        type = "progressive",
         name = "Progressive Shortcut"
     },
     [45] = {
+        type = "dwelling_shortcut",
+        name = "Dwelling Shortcut"
+    },
+    [46] = {
+        type = "olmec_shortcut",
+        name = "Olmec's Lair Shortcut"
+    },
+    [47] = {
+        type = "ice_caves_shortcut",
+        name = "Ice Caves Shortcut"
+    },
+    [48] = {
         type = "checkpoints",
         name = "Cosmic Ocean Checkpoint"
     },
-    [46] = {
+    [49] = {
         type = "max_world",
         name = "Progressive World Unlock"
     },
-    [47] = {
+    [50] = {
         type = "jungle",
         name = "Jungle"
     },
-    [48] = {
+    [51] = {
         type = "volcana",
         name = "Volcana"
     },
-    [49] = {
+    [52] = {
         type = "olmec",
         name = "Olmec's Lair"
     },
-    [50] = {
+    [53] = {
         type = "tide_pool",
         name = "Tide Pool"
     },
-    [51] = {
+    [54] = {
         type = "temple",
         name = "Temple"
     },
-    [52] = {
+    [55] = {
         type = "ice_caves",
         name = "Ice Caves"
     },
-    [53] = {
+    [56] = {
         type = "neo_babylon",
         name = "Neo Babylon"
     },
-    [54] = {
+    [57] = {
         type = "sunken_city",
         name = "Sunken City"
     },
-    [55] = {
+    [58] = {
         type = "cosmic_ocean",
         name = "Cosmic Ocean"
     },
-    [56] = {
+    [59] = {
         type = "poison",
         name = "Poison Trap"
     },
-    [57] = {
+    [60] = {
         type = "curse",
         name = "Curse Trap"
     },
-    [58] = {
+    [61] = {
         type = "ghost",
         name = "Ghost Trap"
     },
-    [59] = {
+    [62] = {
         type = "stun",
         name = "Stun Trap"
     },
-    [60] = {
+    [63] = {
         type = "loose bombs",
         name = "Loose Bombs Trap"
     },
-    [61] = {
+    [64] = {
         type = "blind",
         name = "Blindess Trap"
     },
-    [62] = {
+    [65] = {
         type = "amnesia",
         name = "Amnesia Trap"
     },
-    [63] = {
+    [66] = {
         type = "angry",
         name = "Angry Shopkeepers Trap"
     },
-    [64] = {
+    [67] = {
         type = "punish",
         name = "Punish Ball Trap"
     }
@@ -960,6 +995,13 @@ item_categories = {
         "neo_babylon",
         "sunken_city",
         "cosmic_ocean"
+    },
+
+    shortcuts = {
+        "progressive",
+        "dwelling_shortcut",
+        "olmec_shortcut",
+        "ice_caves_shortcut"
     },
     
     traps = {
