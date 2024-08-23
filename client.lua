@@ -28,7 +28,7 @@ player_options = {
     goal = 0,
     goal_level = 30,
     progressive_worlds = true,
-    starting_character = 0,
+    starting_characters = {"Ana Spelunky", "Margaret Tunnel", "Colin Northward", "Roffy D. Sloth"},
     starting_health = 4,
     starting_bombs = 4,
     starting_ropes = 4,
@@ -114,7 +114,7 @@ function connect(server, slot, password)
         player_options.seed = ap:get_seed()
         player_options.goal = slot_data.goal
         player_options.goal_level = slot_data.goal_level
-        player_options.starting_character = slot_data.starting_character
+        player_options.starting_characters = slot_data.starting_characters
         player_options.progressive_worlds = slot_data.progressive_worlds
         player_options.starting_health = slot_data.starting_health
         player_options.starting_bombs = slot_data.starting_bombs
@@ -380,6 +380,13 @@ function item_handler(type)
     for _, world in ipairs(item_categories.worlds) do
         if type == world then
             ap_save.unlocked_worlds[world] = true
+            was_item_processed = true
+        end
+    end
+
+    for _, shortcut in ipairs(item_categories.shortcuts) do
+        if type == shortcut then
+            ap_save.unlocked_shortcuts[shortcut] = ap_save.unlocked_shortcuts[shortcut] + 1
             was_item_processed = true
         end
     end
