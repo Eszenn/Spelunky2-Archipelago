@@ -8,7 +8,7 @@ ap_save = {
     last_character = 1,
 
     max_world = 1,
-    shortcut_progress = 0, -- Change this when shortcuts are implemented
+    shortcut_progress = 0,
     last_index = -1, -- Stores AP item data sent from the server
     checked_locations = {},
 
@@ -24,8 +24,6 @@ ap_save = {
         [9] = false, -- Arrow of Light
         [10] = false -- Ushabti
     },
-
-    starting_characters = {1, 2, 3, 4},
 
     unlocked_characters = {
         [1] = false,  -- Ana Spelunky
@@ -64,9 +62,10 @@ ap_save = {
     },
 
     unlocked_shortcuts = {
-        dwelling = false,
-        olmec = false,
-        ice_caves = false
+        progressive = 0,
+        dwelling_shortcut = false,
+        olmec_shortcut = false,
+        ice_caves_shortcut = false
     },
 
     permanent_upgrades = {
@@ -307,62 +306,10 @@ ap_save = {
     }
 }
 
-function backup_save()
-    local backup = {
-        places = savegame.places,
-        bestiary = savegame.bestiary,
-        people = savegame.people,
-        items = savegame.items,
-        traps = savegame.traps,
-        last_daily = savegame.last_daily,
-        characters = savegame.characters,
-        bestiary_killed = savegame.bestiary_killed,
-        bestiary_killed_by = savegame.bestiary_killed_by,
-        people_killed = savegame.people_killed,
-        people_killed_by = savegame.people_killed_by,
-        plays = savegame.plays,
-        deaths = savegame.deaths,
-        wins_normal = savegame.wins_normal,
-        wins_hard = savegame.wins_hard,
-        wins_special = savegame.wins_special,
-        score_total = savegame.score_total,
-        score_top = savegame.score_top,
-        deepest_area = savegame.deepest_area,
-        deepest_level = savegame.deepest_level,
-        time_best = savegame.time_best,
-        time_total = savegame.time_total,
-        time_tutorial = savegame.time_tutorial,
-        character_deaths = savegame.character_deaths,
-        pets_rescued = savegame.pets_rescued,
-        completed_normal = savegame.completed_normal,
-        completed_ironman = savegame.completed_ironman,
-        completed_hard = savegame.completed_hard,
-        profile_seen = savegame.profile_seen,
-        seeded_unlocked = savegame.seeded_unlocked,
-        world_last = savegame.world_last,
-        level_last = savegame.level_last,
-        theme_last = savegame.theme_last,
-        score_last = savegame.score_last,
-        time_last = savegame.time_last,
-        players = savegame.players,
-        constellation = savegame.constellation
-    }
-
-    local file = io.open_data("Savegame.json", "w+")
-
-    if file ~= nil then
-        file:write(json.encode(backup))
-        file:close()
-    end
-end
-
-
 function initialize_save()
     -- Clearing game save
     savegame.tutorial_state = 4
     savegame.shortcuts = 10
-    savegame.characters = character_data.binary_values[player_options.starting_character]
-    savegame.players[1] = player_options.starting_character - 1
 
     for _, chapter in ipairs(journal.chapters) do
         clear_journal(savegame[chapter])
@@ -372,14 +319,13 @@ function initialize_save()
     ap_save.last_character = 0
     ap_save.max_world = 1
 
-    set_start_values()
-end
+    for _, character in ipairs(player_options.starting_characters) do
+        local index = character_data.name_to_index[character]
+        ap_save.unlocked_characters[index] = true
+    end
 
-
-function set_start_values()
-    savegame.people[player_options.starting_character] = true
-    ap_save.unlocked_characters[player_options.starting_character] = true
-    savegame.players[1] = player_options.starting_character - 1
+    update_characters()
+    savegame.players[1] = character_data.name_to_index[player_options.starting_characters[1]] - 1
 
 end
 
@@ -396,7 +342,6 @@ function update_characters()
     for character, is_unlocked in ipairs(ap_save.unlocked_characters) do
         if is_unlocked then
             character_sum = character_sum + character_data.binary_values[character]
-            savegame.people[character] = true
         end
     end
 
