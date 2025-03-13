@@ -6,7 +6,6 @@ local AP = package.loadlib("lua-apclientpp.dll", "luaopen_apclientpp")()
 local ap = nil
 
 -- Various variables to run the client
-local password_censored = ""
 local item_queue = {}
 local items_in_queue = false
 local ready_for_item = true
@@ -18,7 +17,7 @@ game_info = {
     game = "Spelunky 2",
     username = "",
     host = "archipelago.gg:38281",
-    password_hidden = "",
+    password = "",
     items_handling = 7, -- full remote
     message_format = AP.RenderFormat.TEXT
 }
@@ -39,9 +38,9 @@ player_options = {
 read_last_login()
 
 local show_connect_button = true
-set_callback(function(ctx)
+set_callback(function()
     if state.screen == SCREEN.MENU then
-        ctx:window("Spelunky 2 Archipelago", 0, 0, 0, 0, true, function(ctx, pos, size)
+        register_option_callback("Spelunky 2 Archipelago", player_options, function(ctx)
             ctx:win_text("Slot Name")
             game_info.username = ctx:win_input_text(" ##Slot Name", game_info.username)
 
@@ -49,7 +48,7 @@ set_callback(function(ctx)
             game_info.host = ctx:win_input_text(" ##Host", game_info.host)
 
             ctx:win_text("Password")
-            game_info.password_hidden = ctx:win_input_text(" ##Password", password_censored)
+            game_info.password = ctx:win_input_text(" ##Password", game_info.password)
 
             ctx:win_separator()
 
@@ -59,7 +58,7 @@ set_callback(function(ctx)
                     id = set_callback(function()
                         return true
                     end, ON.PRE_PROCESS_INPUT)
-                    connect(game_info.host, game_info.username, game_info.password_hidden)
+                    connect(game_info.host, game_info.username, game_info.password)
                 end
             else
                 if ctx:win_button("Disconnect") then
@@ -70,12 +69,6 @@ set_callback(function(ctx)
                 end
             end
         end)
-
-        if state.screen == SCREEN.MENU then
-            if #password_censored < #game_info.password_hidden then
-                password_censored = password_censored .. "*"
-            end
-        end
     end
 
     if ap ~= nil then
@@ -91,6 +84,8 @@ function connect(server, slot, password)
 
     function on_socket_error(msg)
         print("Socket error: " .. msg)
+        show_connect_button = true
+        clear_callback(id)
     end
 
     function on_socket_disconnected()
@@ -100,7 +95,7 @@ function connect(server, slot, password)
     end
 
     function on_room_info()
-        ap:ConnectSlot(slot, password, game_info.items_handling, {"Lua-APClientPP"}, {0, 3, 9})
+        ap:ConnectSlot(slot, password, game_info.items_handling, {"Lua-APClientPP"}, {0, 4, 9})
     end
 
     function on_slot_connected(slot_data)
@@ -114,7 +109,7 @@ function connect(server, slot, password)
         player_options.seed = ap:get_seed()
         player_options.goal = slot_data.goal
         player_options.goal_level = slot_data.goal_level
-        player_options.starting_characters = slot_data.starting_characters
+        -- player_options.starting_characters = slot_data.starting_characters
         player_options.progressive_worlds = slot_data.progressive_worlds
         player_options.starting_health = slot_data.starting_health
         player_options.starting_bombs = slot_data.starting_bombs
