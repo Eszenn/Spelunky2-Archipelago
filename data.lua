@@ -47,7 +47,7 @@ journal = {
         [18] = "Dirk Yamaoka",
         [19] = "Guy Spelunky",
         [20] = "Classic Guy",
-        [21] = "Mama Tunnel",
+        [21] = "Terra Tunnel",
         [22] = "Hired Hand",
         [23] = "Eggplant Child",
         [24] = "Shopkeeper",
@@ -838,7 +838,7 @@ item_ids = {
     },
     [40] = {
         type = "paste",
-        name = "Permanent Paste"
+        name = "Paste"
     },
     [41] = {
         type = "clover",
@@ -853,24 +853,24 @@ item_ids = {
         name = "Eggplant"
     },
     [44] = {
-        type = "progressive",
-        name = "Progressive Shortcut"
+        type = "checkpoints",
+        name = "Cosmic Ocean Checkpoint"
     },
     [45] = {
+        type = "progressive_shortcut",
+        name = "Progressive Shortcut"
+    },
+    [46] = {
         type = "dwelling_shortcut",
         name = "Dwelling Shortcut"
     },
-    [46] = {
+    [47] = {
         type = "olmec_shortcut",
         name = "Olmec's Lair Shortcut"
     },
-    [47] = {
+    [48] = {
         type = "ice_caves_shortcut",
         name = "Ice Caves Shortcut"
-    },
-    [48] = {
-        type = "checkpoints",
-        name = "Cosmic Ocean Checkpoint"
     },
     [49] = {
         type = "max_world",
@@ -998,7 +998,7 @@ item_categories = {
     },
 
     shortcuts = {
-        "progressive",
+        "progressive_shortcut",
         "dwelling_shortcut",
         "olmec_shortcut",
         "ice_caves_shortcut"
