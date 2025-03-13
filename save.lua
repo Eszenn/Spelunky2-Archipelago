@@ -6,14 +6,22 @@ save_name = ""
 
 ap_save = {
     last_character = 1,
+    last_index = -1, -- Stores AP item data sent from the server
+    checked_locations = {},
+    
+    --[[ This is all breaking
+    default_character_queue = {
+        [1] = 194,
+        [2] = 195,
+        [3] = 196,
+        [4] = 197
+    },]]
 
     max_world = 1,
     shortcut_progress = 0,
-    last_index = -1, -- Stores AP item data sent from the server
-    checked_locations = {},
 
     unlocked_key_items = {
-        [1] = false,  -- Udjat Eye
+        [1] = false, -- Udjat Eye
         [2] = false, -- Hedjet
         [3] = false, -- Crown
         [4] = false, -- Ankh
@@ -26,10 +34,10 @@ ap_save = {
     },
 
     unlocked_characters = {
-        [1] = false,  -- Ana Spelunky
-        [2] = false,  -- Margaret Tunnel
-        [3] = false,  -- Colin Northward
-        [4] = false,  -- Roffy D. Sloth
+        [1] = true,   -- Ana Spelunky
+        [2] = true,   -- Margaret Tunnel
+        [3] = true,   -- Colin Northward
+        [4] = true,   -- Roffy D. Sloth
         [5] = false,  -- Alto Singh
         [6] = false,  -- Liz Mutton
         [7] = false,  -- Nekka the Eagle
@@ -63,9 +71,9 @@ ap_save = {
 
     unlocked_shortcuts = {
         progressive = 0,
-        dwelling_shortcut = false,
-        olmec_shortcut = false,
-        ice_caves_shortcut = false
+        dwelling_shortcut = 0,
+        olmec_shortcut = 0,
+        ice_caves_shortcut = 0
     },
 
     permanent_upgrades = {
@@ -76,7 +84,6 @@ ap_save = {
         clover = 0,
         compass = 0, -- 0 = no compass, 1 = compass, 2 = alien compass
         eggplant = 0, -- Places an eggplant in Waddler's shop if true
-        shortcuts = 0,
         checkpoints = 0
     },
 
@@ -100,10 +107,10 @@ ap_save = {
     },
 
     people = {
-        [1] = false,  -- Ana Spelunky
-        [2] = false,  -- Margaret Tunnel
-        [3] = false,  -- Colin Northward
-        [4] = false,  -- Roffy D. Sloth
+        [1] = true,  -- Ana Spelunky
+        [2] = true,  -- Margaret Tunnel
+        [3] = true,  -- Colin Northward
+        [4] = true,  -- Roffy D. Sloth
         [5] = false,  -- Alto Singh
         [6] = false,  -- Liz Mutton
         [7] = false,  -- Nekka the Eagle
@@ -120,7 +127,7 @@ ap_save = {
         [18] = false, -- Dirk Yamaoka
         [19] = false, -- Guy Spelunky
         [20] = false, -- Classic Guy
-        [21] = false, -- Mama Tunnel
+        [21] = false, -- Terra Tunnel
         [22] = false, -- Hired Hand
         [23] = false, -- Eggplant Child
         [24] = false, -- Shopkeeper
@@ -309,7 +316,7 @@ ap_save = {
 function initialize_save()
     -- Clearing game save
     savegame.tutorial_state = 4
-    savegame.shortcuts = 10
+    savegame.shortcuts = 0
 
     for _, chapter in ipairs(journal.chapters) do
         clear_journal(savegame[chapter])
@@ -319,14 +326,20 @@ function initialize_save()
     ap_save.last_character = 0
     ap_save.max_world = 1
 
+    --[[
     for _, character in ipairs(player_options.starting_characters) do
         local index = character_data.name_to_index[character]
         ap_save.unlocked_characters[index] = true
+        
+        if index <= 4 then
+            table.remove(ap_save.default_character_queue, index)
+        end
     end
+    ]]
 
     update_characters()
-    savegame.players[1] = character_data.name_to_index[player_options.starting_characters[1]] - 1
-
+    -- savegame.players[1] = character_data.name_to_index[player_options.starting_characters[1]] - 1
+    savegame.players[1] = 0
 end
 
 
@@ -339,9 +352,10 @@ end
 
 function update_characters()
     local character_sum = 0
-    for character, is_unlocked in ipairs(ap_save.unlocked_characters) do
+    for index, is_unlocked in ipairs(ap_save.unlocked_characters) do
         if is_unlocked then
-            character_sum = character_sum + character_data.binary_values[character]
+            character_sum = character_sum + character_data.binary_values[index]
+            --savegame.people[index] = true
         end
     end
 
@@ -375,6 +389,7 @@ function update_journal(chapter, index)
     table.insert(ap_save.checked_locations, #ap_save.checked_locations + 1, location_id)
     send_location(location_id)
 end
+
 
 function copy_journal_data(chapter)
     local array = ap_save[chapter]
@@ -443,7 +458,13 @@ function read_last_login()
         local login_info = json.decode(file:read("a"))
         file:close()
 
-        game_info.username = login_info.username
-        game_info.host = login_info.host
+        if login_info.username ~= nil then
+            game_info.username = login_info.username
+            game_info.host = login_info.host
+        
+        else
+            game_info.username = ""
+            game_info.host = "archipelago.gg:38281"
+        end
     end
 end
