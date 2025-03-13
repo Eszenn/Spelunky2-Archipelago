@@ -44,13 +44,13 @@ This mod allows you to connect to Archipelago in order to play a multiworld rand
 - Blindness Trap: Triggers the "I can't see a thing!" level feeling for the current level
 - Punish Ball Trap: Gives the player a ball and chain for 3 levels
 
-## Installation Instructions
+# Installation Instructions
 1. Follow the Archipelago setup guide [here](https://archipelago.gg/tutorial/Archipelago/setup/en)
-2. Download the latest version of the Spelunky 2 apworld [here]()
-3. Double click the installed apworld to automatically install it to Archipelago, or manually move the file into the custom_worlds folder in your Archipelago installation
-4. Download the latest version of Modlunky 2 [here](https://github.com/spelunky-fyi/modlunky2/releases/latest), and make sure you are using the 
-5. Download the latest version of the mod using Modlunky to automatically install it to your mods folder, or download the mod from this page and extract the contents of the .zip file to Mods/Packs in your Spelunky 2 installation
-6. Navigate to the Playlunky tab in Modlunky 2, toggle "Archipelago" and click "Play!"
+2. Download the latest version of the Spelunky 2 apworld [here](https://github.com/Eszenn/Archipelago/releases)
+3. Double click the downloaded apworld to automatically install it to Archipelago, or manually move the file into the custom_worlds folder of your Archipelago installation
+4. Download the latest version of Modlunky 2 [here](https://github.com/spelunky-fyi/modlunky2/releases/latest)
+5. Download the latest "Spelunky 2 Archipelago.zip" from the [release page](https://github.com/Eszenn/Spelunky2-Archipelago/releases) and extract the contents of the .zip directly to your Spelunky 2 folder
+6. Navigate to the Playlunky tab in Modlunky 2, toggle "Spelunky 2 Archipelago" and click "Play!"
     - It is HIGHLY recommended to turn on the "Use Playlunky Save" in the options menu! This mod frequently overwrites the save used by the game, and while it does make backups, errors can occur. I cannot be held liable if you lose your save file while using this mod.
 7. Once on the main menu, you will need to enable the mod manually, as it requires unsafe mode to load the library used to connect to Archipelago
 8. Enter your slot name, the server address, and password (if applicable) in the popup menu and click connect to connect to Archipelago
