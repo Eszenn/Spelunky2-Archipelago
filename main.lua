@@ -6,11 +6,11 @@ meta = {
     name = "Spelunky 2 Archipelago",
     description = "Adds Archipelago Multiworld Randomizer support!",
     author = "Eszenn",
-    version = "0.1.0",
+    version = "0.1.1",
     unsafe = true
 }
 
-debugging = true
+debugging = false
 
 set_callback(function()
     if debugging then
@@ -27,14 +27,10 @@ set_callback(function()
         lock_characters()
     end
 
-     --[[
+    
     if state.screen_next == SCREEN.CAMP then
-        if ap_save.permanent_upgrades.shortcuts == 0 then
-            savegame.shortcuts = 0
-        else
-            savegame.shortcuts = ap_save.permanent_upgrades.shortcuts * 3 + 1
-        end
-    end]]
+        savegame.shortcuts = 10
+    end
 end, ON.LOADING)
 
 
@@ -45,10 +41,27 @@ set_callback(function()
         local shortcut = get_entity(uid)
         local x, y, layer = get_position(uid)
 
+        unlock_door_at(x,y)
+
+        --[[
+        if shortcut.theme == THEME.DWELLING and (ap_save.unlocked_shortcuts.progressive >= 1 or ap_save.unlocked_shortcuts.dwelling == 1) then
+            unlock_door_at(x, y)
+            
+        elseif shortcut.theme == THEME.OLMEC and (ap_save.unlocked_shortcuts.progressive >= 2 or ap_save.unlocked_shortcuts.olmec == 1) then
+            unlock_door_at(x, y)
+
+        elseif shortcut.theme == THEME.ICE_CAVES and (ap_save.unlocked_shortcuts.progressive == 3 or ap_save.unlocked_shortcuts.ice_caves == 1) then
+            unlock_door_at(x, y)
         
+        else
+            lock_door_at(x, y)
+
+        end
+        ]]
     end
 
 end, ON.CAMP)
+
 
 -- This handles all of the permanent upgrades to give the player at the start of every run
 set_callback(function()
@@ -56,7 +69,7 @@ set_callback(function()
         prinspect("START")
     end
     
-    --savegame.shortcuts = ap_save.shortcut_progress
+    savegame.shortcuts = ap_save.shortcut_progress
 
     local player = get_player(1, false)
     player.health = player_options.starting_health + ap_save.permanent_upgrades.health
@@ -80,10 +93,6 @@ set_callback(function()
     if ap_save.permanent_upgrades.eggplant ~= 0 then
         waddler_store_entity(ENT_TYPE.ITEM_EGGPLANT)
     end
-
-    -- if ap_save.permanent_upgrades.clover then
-        -- set_ghost_spawn_times(18000, 16200)
-    -- end
 end, ON.START)
 
 
@@ -99,28 +108,36 @@ set_callback(function()
     end
 
 
-    --[[
+    
     if savegame.shortcuts > ap_save.shortcut_progress then
         ap_save.shortcut_progress = savegame.shortcuts
-    end]]
+    end
 end, ON.LEVEL)
 
 
 set_callback(function()
     if debugging then
-        print("PRE_LEVEL_GENERATION")
+        print("POST_LEVEL_GENERATION")
     end
 
     local coffin_uids = get_entities_by(ENT_TYPE.ITEM_COFFIN, MASK.ITEM, LAYER.BOTH)
     for _, uid in ipairs(coffin_uids) do
         local coffin = get_entity(uid)
+        --[[
+        if coffin.inside == ENT_TYPE.CHAR_HIREDHAND and #ap_save.default_character_queue ~= 0 then
+            set_contents(coffin.uid, ap_save.default_character_queue[1])
+            table.remove(ap_save.default_character_queue, 1)
+            break
+        end]]
+
         for character, is_unlocked in ipairs(ap_save.people) do
             if coffin.inside == character_data.types[character] and is_unlocked then
                 set_contents(coffin.uid, ENT_TYPE.CHAR_HIREDHAND)
+                break
             end
         end
     end
-end, ON.PRE_LEVEL_GENERATION)
+end, ON.POST_LEVEL_GENERATION)
 
 
 set_callback(function()
