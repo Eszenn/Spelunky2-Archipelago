@@ -291,7 +291,7 @@ function set_ap_callbacks()
     end, ON.START)
 
     set_callback(function()
-        if player_options.goal == 2 and state.world == 7 and state.level == player_options.goal_level - 1 then
+        if player_options.goal == 2 and state.world == 8 and state.level == player_options.goal_level - 1 then
             state.win_state = 3
             state.level_next = 99
         end
