@@ -70,7 +70,7 @@ ap_save = {
     },
 
     unlocked_shortcuts = {
-        progressive = 0,
+        progressive_shortcut = 0,
         dwelling_shortcut = 0,
         olmec_shortcut = 0,
         ice_caves_shortcut = 0
