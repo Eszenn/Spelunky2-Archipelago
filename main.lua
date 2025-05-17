@@ -10,6 +10,8 @@ meta = {
     unsafe = true
 }
 
+register_option_float('popup_time', 'Popup Timer', 'How long the "You received" or "You sent"! popup lingers.\n(Note: Higher values makes receiving items take longer)\nTime in seconds', 3.5, 0.5, 10)
+
 debugging = false
 
 set_callback(function()

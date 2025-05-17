@@ -826,31 +826,38 @@ item_ids = {
     },
     [37] = {
         type = "health",
-        name = "Starting Health Upgrade"
+        name = "Starting Health Upgrade",
+        display = ENT_TYPE.ITEM_BLOOD
     },
     [38] = {
         type = "bombs",
-        name = "Starting Bombs Upgrade"
+        name = "Starting Bombs Upgrade",
+        display = ENT_TYPE.ITEM_PICKUP_PLAYERBAG
     },
     [39] = {
         type = "ropes",
-        name = "Starting Ropes Upgrade"
+        name = "Starting Ropes Upgrade",
+        display = ENT_TYPE.ITEM_PICKUP_PLAYERBAG
     },
     [40] = {
         type = "paste",
-        name = "Paste"
+        name = "Paste",
+        display = ENT_TYPE.ITEM_PICKUP_PASTE
     },
     [41] = {
         type = "clover",
-        name = "Permanant Four-Leaf Clover"
+        name = "Permanant Four-Leaf Clover",
+        display = ENT_TYPE.ITEM_PICKUP_CLOVER
     },
     [42] = {
         type = "compass",
-        name = "Progressive Compass"
+        name = "Progressive Compass",
+        display = ENT_TYPE.ITEM_PICKUP_COMPASS
     },
     [43] = {
         type = "eggplant",
-        name = "Eggplant"
+        name = "Eggplant",
+        display = ENT_TYPE.ITEM_EGGPLANT
     },
     [44] = {
         type = "checkpoints",
@@ -874,7 +881,8 @@ item_ids = {
     },
     [49] = {
         type = "max_world",
-        name = "Progressive World Unlock"
+        name = "Progressive World Unlock",
+        display = ENT_TYPE.ITEM_FLOATING_ORB
     },
     [50] = {
         type = "jungle",

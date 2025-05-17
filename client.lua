@@ -1,3 +1,4 @@
+require "lib/popup"
 local saveLib = require "save"
 
 local AP = package.loadlib("lua-apclientpp.dll", "luaopen_apclientpp")()
@@ -7,11 +8,29 @@ local ap = nil
 
 -- Various variables to run the client
 local item_queue = {}
-local items_in_queue = false
+local send_item_queue = {}
 local ready_for_item = true
 local caused_by_death_link = false
 local goal_completed = false
 local id = nil
+ourSlot = nil
+ourTeam = nil
+apSlots = {}
+apGames = {}
+local packWorlds = {
+    [1] = "Dwellings",
+    [2] = "Jungle",
+    [3] = "Volcana",
+    [4] = "Olmec",
+    [5] = "Tide Pool",
+    [6] = "Temple",
+    [7] = "Ice Caves",
+    [8] = "Neo Babylon",
+    [9] = "Sunken City",
+    [12] = "Duat",
+    [13] = "Abzu",
+    [15] = "Eggplant World"
+}
 
 game_info = {
     game = "Spelunky 2",
@@ -91,7 +110,10 @@ function connect(server, slot, password)
     function on_socket_disconnected()
         print("Disconnected from the server.")
         show_connect_button = true
-
+        ourSlot = nil
+        ourTeam = nil
+        apSlots = {}
+        apGames = {}
     end
 
     function on_room_info()
@@ -106,6 +128,12 @@ function connect(server, slot, password)
 
         write_last_login()
 
+        ourSlot = ap:get_player_number()
+        ourTeam = ap:get_team_number()
+        apSlots = ap:get_players()
+        for _, entry in ipairs(apSlots) do
+            table.insert(apGames, ap:get_player_game(entry.slot))
+        end
         player_options.seed = ap:get_seed()
         player_options.goal = slot_data.goal
         player_options.goal_level = slot_data.goal_level
@@ -115,7 +143,7 @@ function connect(server, slot, password)
         player_options.starting_bombs = slot_data.starting_bombs
         player_options.starting_ropes = slot_data.starting_ropes
         player_options.death_link = slot_data.death_link
-        
+        ap:Set(f"{ourSlot}_{ourTeam}_worldTab", "Entire map", false, { { operation = "add", value = "Entire map" } }, nil)
         
         if player_options.death_link then
             ap:ConnectUpdate(nil, {"Lua-APClientPP", "DeathLink"})
@@ -144,10 +172,21 @@ function connect(server, slot, password)
     end
 
     function on_items_received(items)
+        local sender = "another world"
         for _, data in ipairs(items) do
             if data.index > ap_save.last_index then
-                table.insert(item_queue, #item_queue + 1, data.item)
-                items_in_queue = true
+                if data.player ~= ourSlot then
+                    local players = ap:get_players()
+                    for _, player in ipairs(players) do
+                        if player.slot == data.player then
+                            sender = player.name
+                            break
+                        end
+                    end
+                else
+                    sender = "you"
+                end
+                table.insert(item_queue, #item_queue + 1, {item = data.item,player = sender})
             end
         end
     end
@@ -174,9 +213,12 @@ function connect(server, slot, password)
     end
 
     function on_print_json(msg, extra)
-        print(ap:render_json(msg, player_options.message_format))
-        for key, value in pairs(extra) do
-            print("  " .. key .. ": " .. tostring(value))
+        if (extra.type == "ItemSend") and extra.receiving ~= ourSlot then
+            if extra.item and type(extra.item) == "table" and extra.item.player == ourSlot then
+                local receiver = apSlots[extra.receiving].name
+                local sendItem = ap:get_item_name(extra.item.item, apGames[extra.receiving])
+                table.insert(send_item_queue, #send_item_queue + 1, {item = sendItem, target = receiver})
+            end
         end
     end
 
@@ -229,7 +271,7 @@ function connect(server, slot, password)
     --ap:set_location_checked_handler(on_location_checked)
     ap:set_data_package_changed_handler(on_data_package_changed)
     --ap:set_print_handler(on_print)
-    --ap:set_print_json_handler(on_print_json)
+    ap:set_print_json_handler(on_print_json)
     ap:set_bounced_handler(on_bounced)
     ap:set_retrieved_handler(on_retrieved)
     ap:set_set_reply_handler(on_set_reply)
@@ -238,50 +280,59 @@ end
 
 function set_ap_callbacks()
     set_callback(function()
-        if items_in_queue and state.screen == SCREEN.LEVEL and ready_for_item then
-            local item = item_ids[item_queue[1]]
+        local popupFrames = math.ceil(options.popup_time*60)
+        if state.screen == SCREEN.LEVEL and ready_for_item then
+            local item
+            local display
+            local msgTitle
+            local msgDesc
+            if IsType(item_queue,"table") and #item_queue > 0 then
+                local player = item_queue[1].player
+                item = item_ids[item_queue[1].item]
+                display = item.display or (type(item.type) == "number" and item.type) or ENT_TYPE.ITEM_CHEST
+                item_handler(item.type)
+                msgTitle = (player == "you" and "You found an item!") or f"Item received from {player}"
+                msgDesc = (player == "you" and f"{item.name}") or f"Received {item.name}"
+                table.remove(item_queue, 1)
+                ap_save.last_index = ap_save.last_index + 1
+                write_save()
+            elseif IsType(send_item_queue, "table") and #send_item_queue >0 then
+                item = (type(send_item_queue[1].item) == "string" and send_item_queue[1].item) or "<Error>"
+                if #item > 34 then
+                    item = item:sub(1, 32) .. "..."
+                end
+                display = ENT_TYPE.ITEM_PRESENT
+                local target = send_item_queue[1].target or "<Unknown>"
+                msgTitle = f"Found {target}'s Item from another world!"
+                if #msgTitle > 39 then
+                    msgTitle = f"Found {target}'s Item!"
+                    if #msgTitle > 39 then
+                        local truncated_target = target:sub(1, 22)
+                        msgTitle = f"Found {truncated_target}...'s Item!"
+                    end
+                end
+                msgDesc = f"Sent \"{item}\""
+                table.remove(send_item_queue, 1)
+            else
+                return
+            end
+
             ready_for_item = false
-
-            if state.toast_timer ~= 0 then
-                set_interval(function()
-                    state.toast_timer = 0
-                    ready_for_item = true
-                    clear_callback()
-                end, 195 - state.toast_timer)
-                return
-            end
-
-            if state.speechbubble_timer ~= 0 then
-                set_interval(function()
-                    state.speechbubble_timer = 0
-                    ready_for_item = true
-                    clear_callback()
-                end, 261 - state.speechbubble_timer)
-                return
-            end
-
-            item_handler(item.type)
-
-            toast(f"You received {item.name}!")
-
-             set_interval(function()
+            set_interval(function()
                 ready_for_item = true
-                clear_callback()
-            end, 195)
+                return false
+            end, popupFrames)
 
-            table.remove(item_queue, 1)
-            ap_save.last_index = ap_save.last_index + 1
-
-            write_save()
-            
-            if #item_queue == 0 then
-                items_in_queue = false
-            end
+            ShowFeatBox(display, msgTitle, msgDesc, popupFrames)
         end
     end, ON.GAMEFRAME)
 
     set_callback(function()
         ready_for_item = true
+        if ourSlot ~= nil then
+            local worldTab = packWorlds[state.theme] or "Entire map"
+            ap:Set(f"{ourSlot}_{ourTeam}_worldTab", "Entire map", false, { { operation = "replace", value = worldTab } }, nil)
+        end
     end, ON.POST_LEVEL_GENERATION)
 
     set_callback(function()
