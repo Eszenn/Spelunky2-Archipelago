@@ -54,7 +54,7 @@ function ShowFeatBox(entity, title, description, durationFrames)
     if not success then
         error("Failed to get texture for FeatBox")
     end
-    local spriteIndex = (IsType(entity.type,"table") and not IsNull(entity.type.animations[1]) and not IsNull(entity.type.animations[1].first_tile) and entity.type.animations[1].first_tile)
+    local spriteIndex = (IsType(entity.type,"table") and not IsNull(entity.type.animations[0]) and not IsNull(entity.type.animations[0].first_tile) and entity.type.animations[0].first_tile)
             or (not IsNull(entity.animation_frame) and entity.animation_frame)
             or 0
     local spriteOffset = 0
