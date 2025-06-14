@@ -1,7 +1,12 @@
-require "lib/popup"
-local saveLib = require "save"
+safe_require("lib/popup")
 
-local AP = package.loadlib("lua-apclientpp.dll", "luaopen_apclientpp")()
+local aplib = safe_loadlib("lua-apclientpp.dll", "luaopen_apclientpp")
+local AP = aplib and aplib() or nil
+
+if not AP then
+    print("Failed to load Archipelago Client!\nIs **lua-apclientpp.dll** in the same folder as **Spel2.exe**?")
+    return
+end
 
 ---@type APClient
 local ap = nil
@@ -41,6 +46,11 @@ game_info = {
     message_format = AP.RenderFormat.TEXT
 }
 
+save_password = false
+local show_login_data = false
+local show_connect_button = true
+local show_delete_button = false
+
 player_options = {
     seed = "BACKUP",
     goal = 0,
@@ -54,21 +64,42 @@ player_options = {
     bypass_ankh = false
 }
 
-read_last_login()
+if read_last_login() then
+    show_delete_button = true
+else
+    show_login_data = true
+end
 
-local show_connect_button = true
+if game_info.password ~= "" then
+    save_password = true
+end
 set_callback(function()
     if state.screen == SCREEN.MENU then
         register_option_callback("Spelunky 2 Archipelago", player_options, function(ctx)
-            ctx:win_text("Slot Name")
-            game_info.username = ctx:win_input_text(" ##Slot Name", game_info.username)
+            if show_delete_button then
+                    if ctx:win_button("Delete login details") then
+                    write_last_login("wipe")
+                    game_info.username = ""
+                    game_info.host = "archipelago.gg:38281"
+                    game_info.password = ""
+                    show_delete_button = false
+                    show_login_data = true
+                end
+            end
+            show_login_data = ctx:win_check("Show login details",show_login_data)
 
-            ctx:win_text("Server Address")
-            game_info.host = ctx:win_input_text(" ##Host", game_info.host)
+            if show_login_data then
+                ctx:win_text("Slot Name")
+                game_info.username = ctx:win_input_text(" ##Slot Name", game_info.username)
 
-            ctx:win_text("Password")
-            game_info.password = ctx:win_input_text(" ##Password", game_info.password)
+                ctx:win_text("Server Address")
+                game_info.host = ctx:win_input_text(" ##Host", game_info.host)
 
+                ctx:win_text("Password")
+                game_info.password = ctx:win_input_text(" ##Password", game_info.password)
+                
+                save_password = ctx:win_check("Remember Password",save_password)
+            end
             ctx:win_separator()
 
             if show_connect_button then
@@ -126,8 +157,6 @@ function connect(server, slot, password)
         show_connect_button = false
         clear_callback(id)
 
-        write_last_login()
-
         ourSlot = ap:get_player_number()
         ourTeam = ap:get_team_number()
         apSlots = ap:get_players()
@@ -160,7 +189,9 @@ function connect(server, slot, password)
                 end
             end, ON.DEATH)
         end
-
+        write_last_login()
+        show_delete_button = true
+        show_login_data = false
         set_ap_callbacks()
         initialize_save()
         read_save()
@@ -339,7 +370,7 @@ function set_ap_callbacks()
         caused_by_death_link = false
         state.toast_timer = 0
         state.speechbubble_timer = 0
-    end, ON.START)
+    end, ON.RESET)
 
     set_callback(function()
         if player_options.goal == 2 and state.world == 8 and state.level == player_options.goal_level - 1 then

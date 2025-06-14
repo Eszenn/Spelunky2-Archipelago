@@ -1,6 +1,30 @@
-local APSave = require "save"
-local APClient = require "client"
-local Data = require "data"
+_G.safe_require = function(name)
+    local info = debug.getinfo(2, "Sln")
+    local caller = info and (info.short_src or info.source or "unknown source") or "unknown source"
+    local line = info and info.currentline or "?"
+    local ok, result = xpcall(function() return require(name) end, debug.traceback)
+    if not ok then
+        print(string.format("Failed to require '%s' (called from %s:%s):\n%s",name, caller, tostring(line), result))
+        return nil
+    end
+    return result
+end
+
+_G.safe_loadlib = function(lib, func)
+    local info = debug.getinfo(2, "Sln")
+    local caller = info and (info.short_src or info.source or "unknown source") or "unknown source"
+    local line = info and info.currentline or "?"
+    local ok, result = xpcall(function() return package.loadlib(lib, func) end, debug.traceback)
+    if not ok then
+        print(string.format("Failed to load library '%s' (called from %s:%s):\n%s",lib, caller, tostring(line), result))
+        return nil
+    end
+    return result
+end
+
+local Data = safe_require("data")
+local APSave = safe_require("save")
+local APClient = safe_require("client")
 
 meta = {
     name = "Spelunky 2 Archipelago",
