@@ -1,6 +1,4 @@
-local json = require "lib.json"
-local Data = require "data"
-
+local json = safe_require("lib/lunajson")
 path = "saves/"
 save_name = ""
 
@@ -436,35 +434,37 @@ function read_save()
 end
 
 
-function write_last_login()
-    local login_info = {
-        username = game_info.username,
-        host = game_info.host
-    }
-
-    local file = io.open_data("login.json", "w+")
-
-    if file ~= nil then
-        file:write(json.encode(login_info))
-        file:close()
+function write_last_login(clear)
+    local saveData = ""
+    if clear == nil then
+        saveData = json.encode({username = game_info.username, host = game_info.host, password = save_password and game_info.password or ""})
     end
+    local loginFile = io.open_data("login.json", "w+")
+    loginFile:write(saveData)
+    loginFile:close()
 end
 
 
 function read_last_login()
-    local file = io.open_data("login.json")
-
-    if file ~= nil then
-        local login_info = json.decode(file:read("a"))
-        file:close()
-
-        if login_info.username ~= nil then
-            game_info.username = login_info.username
-            game_info.host = login_info.host
-        
-        else
-            game_info.username = ""
-            game_info.host = "archipelago.gg:38281"
+    game_info.username = ""
+    game_info.host = "archipelago.gg:38281"
+    local loginFile = io.open_data("login.json", "r")
+    if loginFile == nil then
+        return false
+    else
+        local loginData = loginFile:read("*all")
+        loginFile:close()
+        if loginData and loginData ~= "" then
+            local success, loginData = pcall(json.decode,loginData)
+            if success then
+                if (loginData and loginData ~= "") and (type(loginData) == "table" and next(loginData) ~= nil) then
+                    game_info.host = loginData.host
+                    game_info.username = loginData.username
+                    game_info.password = loginData.password or ""
+                    return true
+                end
+            end
         end
     end
+    return false
 end

@@ -1,6 +1,30 @@
-local APSave = require "save"
-local APClient = require "client"
-local Data = require "data"
+_G.safe_require = function(name)
+    local info = debug.getinfo(2, "Sln")
+    local caller = info and (info.short_src or info.source or "unknown source") or "unknown source"
+    local line = info and info.currentline or "?"
+    local ok, result = xpcall(function() return require(name) end, debug.traceback)
+    if not ok then
+        print(string.format("Failed to require '%s' (called from %s:%s):\n%s",name, caller, tostring(line), result))
+        return nil
+    end
+    return result
+end
+
+_G.safe_loadlib = function(lib, func)
+    local info = debug.getinfo(2, "Sln")
+    local caller = info and (info.short_src or info.source or "unknown source") or "unknown source"
+    local line = info and info.currentline or "?"
+    local ok, result = xpcall(function() return package.loadlib(lib, func) end, debug.traceback)
+    if not ok then
+        print(string.format("Failed to load library '%s' (called from %s:%s):\n%s",lib, caller, tostring(line), result))
+        return nil
+    end
+    return result
+end
+
+local Data = safe_require("data")
+local APSave = safe_require("save")
+local APClient = safe_require("client")
 
 meta = {
     name = "Spelunky 2 Archipelago",
@@ -81,21 +105,20 @@ set_callback(function()
     if ap_save.permanent_upgrades.paste ~= 0 then
         player:give_powerup(ENT_TYPE.ITEM_POWERUP_PASTE)
     end
-
-    if ap_save.permanent_upgrades.compass == 1 then
-        player:give_powerup(ENT_TYPE.ITEM_POWERUP_COMPASS)
-    elseif ap_save.permanent_upgrades.compass == 2 then
-        player:give_powerup(ENT_TYPE.ITEM_POWERUP_SPECIALCOMPASS)
-    end
-
-    if ap_save.unlocked_key_items[8] then
-        waddler_store_entity(ENT_TYPE.ITEM_HOUYIBOW)
-    end
-
-    if ap_save.permanent_upgrades.eggplant ~= 0 then
-        waddler_store_entity(ENT_TYPE.ITEM_EGGPLANT)
-    end
 end, ON.START)
+
+set_callback(function()
+    set_callback(function()
+        clear_callback()
+        if ap_save.unlocked_key_items[8] then
+        waddler_store_entity(ENT_TYPE.ITEM_HOUYIBOW)
+        end
+
+        if ap_save.permanent_upgrades.eggplant ~= 0 then
+            waddler_store_entity(ENT_TYPE.ITEM_EGGPLANT)
+        end
+    end, ON.PRE_LEVEL_GENERATION)
+end, ON.RESET)
 
 
 set_callback(function()
